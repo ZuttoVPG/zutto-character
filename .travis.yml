@@ -1,0 +1,35 @@
+language: php
+services:
+    - postgresql
+
+cache:
+    directories:
+        - $HOME/.composer/cache
+        - vendor
+php:
+    - 7.0
+    - 7.1
+
+before_install: 
+    - travis_retry composer self-update
+
+install: 
+    - cp .travis.env .env
+    - travis_retry composer install --dev --no-interaction 
+    - composer show 
+
+script: 
+    - composer cs-check
+    - composer test 
+
+after_failure: 
+    - cat storage/logs/lumen.log 
+
+# after_success: # one day...
+after_script:
+    - travis_retry php vendor/bin/coveralls
+
+notifications:
+    email: false
+    webhooks: https://infra.godless-internets.org/TravisCI-Webhooks/travis-ci.php 
+
