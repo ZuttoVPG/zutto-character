@@ -4,6 +4,7 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>zutto-character API test client</title>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
@@ -30,8 +31,8 @@
     <div class="container">
       <div class='row'>
         <div class='col'>
-          <h1>zutto-character test client</h1>
-          <p>Select from several test images, build your request, and see the result!</p>
+          <h1>zutto-character API test client</h1>
+          <p>Select from several test images, build your request, and see the result. If you find a bug, save the 'Request' section and include that in your bug report.</p>
         </div>
       </div>
 
@@ -49,15 +50,43 @@
 
             <div class='form-group' id='attachments'>
               <label>Attachments</label>
-              <div class='form-check'>
-                <label class='form-check-label'>
-                  <input class='form-check-input' type='checkbox' value='/testImg/sad_beanie.png'>
-                  Beanie
-                </label> 
+
+            <!--
+              <div class='form-group'>
+                <label for='attachment[][url]'>Trait</label>
+                <select class='form-control' name='attachment[][url]'>
+                  <option value=''></option> 
+                  <option value='/testImg/sad_beanie.png'>Beanie</option> 
+                  <option value='/testImg/fangs.png'>Fangs</option> 
+                  <option value='/testImg/smile.png'>Smiley</option> 
+                </select>
+
+                <br>
+
+                <div class='form-inline'>
+                  <div class='input-group'>
+                    <div class='input-group-addon'>X</div>
+                    <input type='text' size='1' name='attachment[][x]' class='form-control'>
+                  </div>
+                  &nbsp;
+                  <div class='input-group'>
+                    <div class='input-group-addon'>Y</div>
+                    <input type='text' size='1' name='attachment[][y]' class='form-control'>
+                  </div>
+                  &nbsp;
+                  <div class='input-group'>
+                    <div class='input-group-addon'>Z</div>
+                    <input type='text' size='1' name='attachment[][z]' class='form-control'>
+                  </div>
+                </div>
               </div>
+            -->
+
             </div>
 
-            <button type="submit" class="btn btn-primary">Generate</button>
+            
+            <button type='button' id='addTrait' class='btn btn-primary'>Add Trait</button>
+            <button type="submit" class="btn btn-primary">Submit Request</button>
           </form>
         </div>
 
@@ -90,8 +119,41 @@
 
     <script>
     $(document).ready(function() {
+      var makeAttachmentInput = function(index) {
+        return `
+          <div class='form-group attachment-wrapper'>
+            <label for='attachment[${index}][url]'>Trait</label>
+            <select class='form-control' name='attachment[${index}][url]'>
+              <option value=''></option> 
+              <option value='/testImg/sad_beanie.png'>Beanie</option> 
+              <option value='/testImg/fangs.png'>Fangs</option> 
+              <option value='/testImg/smile.png'>Smiley</option> 
+            </select>
+
+            <br>
+
+            <div class='form-inline'>
+              <div class='input-group'>
+                <div class='input-group-addon'>X</div>
+                <input type='text' size='1' name='attachment[${index}][x]' class='form-control'>
+              </div>
+              &nbsp;
+              <div class='input-group'>
+                <div class='input-group-addon'>Y</div>
+                <input type='text' size='1' name='attachment[${index}][y]' class='form-control'>
+              </div>
+              &nbsp;
+              <div class='input-group'>
+                <div class='input-group-addon'>Z</div>
+                <input type='text' size='1' name='attachment[${index}][z]' class='form-control'>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
       var buildRequest = function() {
-        baseUrl = "https://character-dev.zuttopets.com"; // @TODO, temporary hack
+        baseUrl = window.location.origin; 
 
         request = {
           client: {
@@ -106,20 +168,28 @@
           attachments: [],
         };
 
-        $('#attachments input:checked').each(function(i, checkbox) { 
+        $('div.attachment-wrapper').each(function(i, e) { 
+          image = $('select', e).val();
+          coords = $('input', e).map(function(i, input) { return input.value; });
+
           request.attachments.push({
             image: {
               type: 'url', 
-              image: baseUrl + checkbox.value, // @TODO, hack
+              image: baseUrl + image,
             },
-            x: 67,
-            y: 9, 
-            z: 1
+            x: coords[0], 
+            y: coords[1],
+            z: coords[2]
           });
         });
 
         return request;
       };
+
+      $('#addTrait').click(function() {
+        trait_index = $('#attachments div.attachment-wrapper').length;
+        $('#attachments').append(makeAttachmentInput(trait_index));
+      });
 
       $('#request-form').change(function() {
         request = buildRequest(); 
@@ -157,6 +227,8 @@
           $('#resultImageContainer').html('');
         });
       });
+  
+      $('#attachments').append(makeAttachmentInput(0));
     });
     </script>
   </body>
