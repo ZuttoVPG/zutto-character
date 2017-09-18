@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Models\Asset;
+
 class Attachment extends Asset
 {
     protected $xPos;

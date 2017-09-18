@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use GuzzleHttp\Client;
+
 class Asset
 {
     protected $imageData;
@@ -12,11 +14,12 @@ class Asset
 
     public function __construct($imageData, $errors = [])
     {
-        $this->imageData = $this->getRawImage($imageData);
-        $this->errorBag = array_merge($this->errorBag, $errors);
-
-        $this->imageMimeType = finfo_buffer($this->imageData);
+        $data = $this->getRawImage($imageData);
+        $this->imageData = $data['image']; 
+        $this->imageMimeType = $data['mime']; 
         $this->imageFilesize = strlen($this->imageData);
+
+        $this->errorBag = array_merge($this->errorBag, $errors);
     } // end __construct
 
     protected function checkAssetSchema($imageData)
@@ -43,7 +46,10 @@ class Asset
         }
 
         if ($imageData['type'] == 'blob') {
-            return base64_decode($imageData['image'], true);
+            return [
+                'image' => base64_decode($imageData['image'], true),
+                'mime' => null,
+            ];
         }
 
         if ($this->checkUrlWhitelist($imageData['image']) == false)
@@ -51,18 +57,34 @@ class Asset
             $this->errorBag[] = 'Asset could not be loaded from that domain due to security restrictions.';
             return false;
         } 
-        
-        // @TODO: the error handling on this probably sucks, change it to curl
-        return file_get_contents($imageData['image']);
+
+        // @TODO: http://docs.guzzlephp.org/en/stable/quickstart.html#concurrent-requests 
+        $client = new Client(['timeout' => 1]);
+        $response = $client->get($imageData['image']);
+
+        if ($response->getStatusCode() != 200) {
+            $this->errorBag[] = "Unable to load resource: " . $response->getReasonPhrase();
+            return false;
+        }
+
+        return [
+            'image' => $response->getBody()->getContents(), 
+            'mime' => $response->getHeader('Content-Type')[0],
+        ]; 
     } // end getRawImage
 
     protected function checkUrlWhitelist($url) 
     {
         // @TODO: make this configurable
-        $whitelist = ['http://zuttopets.com:8000'];
-        
+        $whitelist = ['https://character-dev.zuttopets.com'];
+
         $url_parts = parse_url($url);
-        $host = "${url_parts['schema']}://${url_parts['host']}:${url_parts['port']}";
+
+        $host = [$url_parts['scheme'], '://', $url_parts['host']];
+        if (array_key_exists('port', $url_parts) == true) {
+            $host = array_merge($host, [':', $url_parts['port']]);
+        }
+        $host = implode('', $host);
 
         return in_array($host, $whitelist);
     } // end checkUrlWhitelist
@@ -82,4 +104,11 @@ class Asset
 
         return $this->valid;
     } // end isValid
+
+    public function __call($name, $args)
+    {
+        $attr = lcfirst(preg_replace('/^get/', null, $name));
+
+        return $this->$attr;
+    } // end __call
 } // end Asset

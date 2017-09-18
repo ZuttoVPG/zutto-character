@@ -16,7 +16,7 @@ class ServiceTest extends TestCase
 
     public function testPassthroughBlob()
     {
-        $duck = file_get_contents('tests/test_img/steve_the_awful_duck.png');
+        $duck = file_get_contents('public/testImg/steve_the_awful_duck.png');
 
         $resp = $this->json('POST', '/character', [
             'client' => $this->makeScreenData(),
@@ -47,8 +47,8 @@ class ServiceTest extends TestCase
 
     public function testAttaching()
     {
-        $duck_path = 'tests/test_img/steve_the_awful_duck.png';
-        $hat_path = 'tests/test_img/sad_beanie.png';
+        $duck_path = 'public/testImg/steve_the_awful_duck.png';
+        $hat_path = 'public/testImg/sad_beanie.png';
 
         $resp = $this->json('POST', '/character', [
             'client' => $this->makeScreenData(),
