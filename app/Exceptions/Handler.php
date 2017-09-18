@@ -45,6 +45,6 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Exception $e)
     {
-        return response((string)$e, 500);
+        return response((string)$e, 500)->header('Content-Type', 'text/plain');;
     }
 }
