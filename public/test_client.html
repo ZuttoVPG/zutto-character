@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+
+    <style>
+    body {
+      background-color: #f3f4ec;
+    }
+
+    .shade {
+      margin: 1em;
+      padding: 0.5em;
+      background-color: #eceeef;
+    }
+
+    code.sidescroll {
+      overflow-y: scroll;
+    }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class='row'>
+        <div class='col'>
+          <h1>zutto-character test client</h1>
+          <p>Select from several test images, build your request, and see the result!</p>
+        </div>
+      </div>
+
+      <div class='row'>
+        <div class='col shade'>
+          <h2>Configure Request</h2>
+          <form id='request-form'>
+
+            <div class='form-group'>
+              <label for="baseImage">Base Image</label>
+              <select class='form-control' name='baseImage' id='baseImage'>
+                <option value='/testImg/steve_the_awful_duck.png'>Steve the Duck</option>
+              </select>
+            </div>
+
+            <div class='form-group' id='attachments'>
+              <label>Attachments</label>
+              <div class='form-check'>
+                <label class='form-check-label'>
+                  <input class='form-check-input' type='checkbox' value='/testImg/sad_beanie.png'>
+                  Beanie
+                </label> 
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Generate</button>
+          </form>
+        </div>
+
+        <div class='col shade'>
+          <h2>Request</h2>
+          <pre><code class='sidescroll' id='requestPreview'></code></pre>
+        </div>
+
+      </div>
+
+      <div class='row'>
+        <div class='col shade'>
+          <h2>Result</h2>
+          <div id='resultImageContainer'></div>
+        </div>
+
+        <div class='col shade'>
+          <h2>Response</h2>
+          <pre><code class='sidescroll' id='resultResponseContainer'></code></pre>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+
+    <script>
+    $(document).ready(function() {
+      var buildRequest = function() {
+        baseUrl = "https://character-dev.zuttopets.com"; // @TODO, temporary hack
+
+        request = {
+          client: {
+            userAgent: navigator.userAgent,
+            viewport: '1024x768',
+            scale: 1.0,
+          },
+          baseImage: {
+            type: 'url',
+            image: baseUrl + $('#baseImage').val(),
+          },
+          attachments: [],
+        };
+
+        $('#attachments input:checked').each(function(i, checkbox) { 
+          request.attachments.push({
+            image: {
+              type: 'url', 
+              image: baseUrl + checkbox.value, // @TODO, hack
+            },
+            x: 67,
+            y: 9, 
+            z: 1
+          });
+        });
+
+        return request;
+      };
+
+      $('#request-form').change(function() {
+        request = buildRequest(); 
+        $('#requestPreview').text(JSON.stringify(request, null, 2));
+
+        return true;
+      });
+
+      $('#request-form').submit(function(event) {
+        event.preventDefault();
+        request = buildRequest();
+
+        $('#requestPreview').text(JSON.stringify(request, null, 2));
+        
+        $.post({
+          url: '/character', 
+          data: JSON.stringify(request), 
+          contentType: 'application/json',
+          success: function(content, eventType, resp) {
+            mime = content.contentType; 
+            $('#resultImageContainer').html('<img src="data:' + mime +  ';base64,' + content.image + '" alt="Merged Image">');
+
+            resultMsg = "HTTP " + resp.status + " " + resp.statusText + "\n\n" + resp.getAllResponseHeaders(); 
+            if (mime.match(/^image\//) !== null) {
+              resultMsg = resultMsg + "\n\n" + JSON.stringify(content, null, 2);
+            }
+            $('#resultResponseContainer').text(resultMsg)
+
+            return false;
+        }})
+        .fail(function(err) {
+          error = "HTTP " + err.status + " " + err.statusText + "\n\n" + err.getAllResponseHeaders() + "\n\n" + err.responseText;
+          
+          $('#resultResponseContainer').text(error);
+          $('#resultImageContainer').html('');
+        });
+      });
+    });
+    </script>
+  </body>
+</html>
