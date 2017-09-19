@@ -120,14 +120,16 @@
     <script>
     $(document).ready(function() {
       var makeAttachmentInput = function(index) {
+        baseUrl = window.location.origin; 
+
         return `
           <div class='form-group attachment-wrapper'>
             <label for='attachment[${index}][url]'>Trait</label>
             <select class='form-control' name='attachment[${index}][url]'>
               <option value=''></option> 
-              <option value='/testImg/sad_beanie.png'>Beanie</option> 
-              <option value='/testImg/fangs.png'>Fangs</option> 
-              <option value='/testImg/smile.png'>Smiley</option> 
+              <option value='${baseUrl}/testImg/sad_beanie.png'>Beanie</option> 
+              <option value='${baseUrl}/testImg/fangs.png'>Fangs</option> 
+              <option value='${baseUrl}/testImg/smile.png'>Smiley</option> 
             </select>
 
             <br>
@@ -153,8 +155,6 @@
       }
 
       var buildRequest = function() {
-        baseUrl = window.location.origin; 
-
         request = {
           client: {
             userAgent: navigator.userAgent,
@@ -163,7 +163,7 @@
           },
           baseImage: {
             type: 'url',
-            image: baseUrl + $('#baseImage').val(),
+            image: $('#baseImage').val(),
           },
           attachments: [],
         };
@@ -171,11 +171,11 @@
         $('div.attachment-wrapper').each(function(i, e) { 
           image = $('select', e).val();
           coords = $('input', e).map(function(i, input) { return input.value; });
-
+  
           request.attachments.push({
             image: {
               type: 'url', 
-              image: baseUrl + image,
+              image: image,
             },
             x: coords[0], 
             y: coords[1],
@@ -229,6 +229,9 @@
       });
   
       $('#attachments').append(makeAttachmentInput(0));
+      $('#baseImage option').each(function(i, option) {
+        option.value = window.location.origin + option.value;
+      });
     });
     </script>
   </body>
