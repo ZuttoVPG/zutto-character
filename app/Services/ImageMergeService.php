@@ -4,12 +4,12 @@ namespace App\Services;
 
 use \Imagick;
 
-class ImageMergeService 
+class ImageMergeService
 {
     protected $baseImage;
     protected $attachments;
 
-    public function __construct($baseImage, $attachments) 
+    public function __construct($baseImage, $attachments)
     {
         $this->baseImage = $baseImage;
         $this->attachments = $this->sortAttachments($attachments);
@@ -42,7 +42,7 @@ class ImageMergeService
         return $image;
     } // end attachment
 
-    protected function sortAttachments($attachments) 
+    protected function sortAttachments($attachments)
     {
         usort($attachments, function ($a, $b) {
             if ($a->getZIndex() == $b->getZIndex()) {
@@ -63,5 +63,4 @@ class ImageMergeService
 
         return $data;
     } // end resolveImageData
-
 } // end ImageMergeService

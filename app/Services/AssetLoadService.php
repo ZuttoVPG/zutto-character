@@ -52,7 +52,7 @@ class AssetLoadService
 
     public function successful()
     {
-        // No base image = no love 
+        // No base image = no love
         if (array_key_exists(self::BASE_IMAGE, $this->assets) == false) {
             return self::LOAD_FAILED;
         }
@@ -90,7 +90,7 @@ class AssetLoadService
         $results = Promise\settle($promises)->wait();
 
         foreach ($results as $url => $response) {
-            $response = $response['value']; 
+            $response = $response['value'];
 
             foreach ($this->deduplicatedUrls[$url] as $index) {
                 $resource = $response->getBody();
@@ -101,7 +101,7 @@ class AssetLoadService
                 if ($response->getStatusCode() != 200) {
                     $this->failedAssets[$index] = $response->getReasonPhrase();
                     continue;
-                } 
+                }
 
                 $coord = $this->getCoordinates($index);
                 $this->assets[$index] = new Asset($resource, $mime, $filesize, $coord['x'], $coord['y'], $coord['z']);
@@ -117,10 +117,10 @@ class AssetLoadService
                 'y' => $this->attachmentImages[$index]['y'],
                 'z' => $this->attachmentImages[$index]['z'],
             ];
-        } 
+        }
         
         $coord = ['x' => null, 'y' => null, 'z' => null];
-    } // end getCoordinates 
+    } // end getCoordinates
 
     protected function deDuplicateUrls()
     {
@@ -150,7 +150,7 @@ class AssetLoadService
         return array_filter($all, function ($image) use ($type) {
             return $image['type'] == $type;
         });
-    } // end getByType 
+    } // end getByType
 
     public function getErrors()
     {
@@ -164,9 +164,8 @@ class AssetLoadService
 
     public function getAttachmentAssets()
     {
-        return array_filter($this->assets, function ($index) { 
-            return $index != self::BASE_IMAGE; 
-        }, ARRAY_FILTER_USE_KEY); 
+        return array_filter($this->assets, function ($index) {
+            return $index != self::BASE_IMAGE;
+        }, ARRAY_FILTER_USE_KEY);
     } // end getAttachmentAssets
-
 } // end AssetLoadService

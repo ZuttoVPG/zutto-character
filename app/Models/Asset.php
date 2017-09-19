@@ -19,7 +19,7 @@ class Asset
     {
         $this->imageData = $imageData;
         $this->imageMimeType = $mimeType;
-        $this->imageFilesize = $fileSize; 
+        $this->imageFilesize = $fileSize;
 
         $this->xPos = $x;
         $this->yPos = $y;

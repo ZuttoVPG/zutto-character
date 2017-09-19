@@ -43,7 +43,7 @@ class ServiceTest extends TestCase
             'baseImage' => [
                 'type' => 'url',
                 // @TODO - mock guzzle, this is awful
-                'image' => 'https://character-dev.zuttopets.com/testImg/steve_the_awful_duck.png', 
+                'image' => 'https://character-dev.zuttopets.com/testImg/steve_the_awful_duck.png',
             ],
             'attachments' => [],
         ]);
@@ -105,6 +105,6 @@ class ServiceTest extends TestCase
         $merge->readImageBlob(base64_decode($data['image']));
         $merge_pixel = $merge->getImagePixelColor(41, 52)->getColor();
        
-        $this->assertNotEquals($merge_pixel, $pre_merge_pixel); 
+        $this->assertNotEquals($merge_pixel, $pre_merge_pixel);
     } // end testAttaching
 } // end TestService

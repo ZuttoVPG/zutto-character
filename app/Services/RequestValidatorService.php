@@ -22,7 +22,7 @@ class RequestValidatorService
         if (trim($url_whitelist) != null) {
             $this->urlWhitelist = array_map(function ($url) {
                 return trim($url);
-            }, explode(',', $url_whitelist)); 
+            }, explode(',', $url_whitelist));
         }
     } // end request
 
@@ -37,7 +37,7 @@ class RequestValidatorService
 
     protected function validationRunner($field_prefix, $input, $tree)
     {
-        foreach($tree as $field => $validator) {
+        foreach ($tree as $field => $validator) {
             $field_key = "$field_prefix.$field";
 
             if (array_key_exists($field, $input) == false) {
@@ -64,17 +64,17 @@ class RequestValidatorService
     protected function validateClient($field, $input)
     {
         $this->validationRunner($field, $input, [
-            'userAgent' => 'validateNotEmpty', 
-            'viewport' => 'validateNotEmpty', 
-            'scale' => 'validateNotEmpty', 
+            'userAgent' => 'validateNotEmpty',
+            'viewport' => 'validateNotEmpty',
+            'scale' => 'validateNotEmpty',
         ]);
     } // end validateClient
 
     protected function validateAsset($field, $input)
     {
         $this->validationRunner($field, $input, [
-            'type' => 'validateNotEmpty', 
-            'image' => 'validateNotEmpty', 
+            'type' => 'validateNotEmpty',
+            'image' => 'validateNotEmpty',
         ]);
 
         if (in_array($input['type'], ['blob', 'url']) == false) {
@@ -108,8 +108,7 @@ class RequestValidatorService
 
     protected function validateAttachments($field, $input)
     {
-        if ($this->maxAttachments != null)
-        {
+        if ($this->maxAttachments != null) {
             if (sizeof($input) > $this->maxAttachments) {
                 $this->addError($field, 'has more than ' . $this->maxAttachments . ' items');
                 return;
@@ -127,11 +126,11 @@ class RequestValidatorService
             'image' => 'validateAsset',
             'x' => 'validateNotEmpty',
             'y' => 'validateNotEmpty',
-            'z' => 'validateNotEmpty', 
-        ]);
+            'z' => 'validateNotEmpty',
+         ]);
     } // end validateAttachment
 
-    protected function validateNotEmpty($field, $input) 
+    protected function validateNotEmpty($field, $input)
     {
         if ($input === '' || $input === null) {
             $this->addError($field, 'should not be null');
@@ -144,7 +143,7 @@ class RequestValidatorService
             $field = substr($field, 1);
         }
 
-        if(array_key_exists($field, $this->errorBag) == false) {
+        if (array_key_exists($field, $this->errorBag) == false) {
             $this->errorBag[$field] = [];
         }
            
