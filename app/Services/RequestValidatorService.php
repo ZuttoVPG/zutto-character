@@ -88,6 +88,11 @@ class RequestValidatorService
 
     protected function validateUrlWhitelisted($field, $input)
     {
+        // Skip everything if it isn't enabled
+        if ($this->urlWhitelist == null) {
+            return;
+        }
+
         try {
             $uri = Http::createFromString($input);
         } catch (League\Uri\Schemes\UriException $e) {
