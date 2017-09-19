@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Asset;
-use App\Models\Attachment;
+use App\Services\AssetLoadService;
 use App\Services\ImageMergeService;
+use App\Services\RequestValidatorService;
 use Illuminate\Http\Request;
 
 class CharacterController extends Controller
@@ -13,17 +13,17 @@ class CharacterController extends Controller
     {
         $payload = $request->all();
 
-        // @TODO validate the client stuff, we'll need it at some point
-        // In fact, rip a bunch of validation out of the POPOs and do a JSON schema validation
-
-        $base_image = new Asset($payload['baseImage']);
-        $attachments = [];
-    
-        foreach ($payload['attachments'] as $attach) {
-            $attachments[] = new Attachment($attach['image'], $attach['x'], $attach['y'], $attach['z']);
+        $validator = new RequestValidatorService($payload, config('character.maxAttachments'), config('character.urlWhitelist'));
+        if ($validator->isValid() == false) {
+            return response(['errors' => $validator->getErrors()], 500);
         }
 
-        $merge = new ImageMergeService($base_image, $attachments);
+        $loader = AssetLoadService::fetch($payload);
+        if ($loader->successful() != AssetLoadService::LOAD_SUCCESS) {
+            return response(['errors' => $loader->getErrors()], 500);
+        }
+
+        $merge = new ImageMergeService($loader->getBaseImageAsset(), $loader->getAttachmentAssets());
         $image_data = base64_encode($merge->render());
 
         return response(['image' => $image_data, 'contentType' => 'image/png']);

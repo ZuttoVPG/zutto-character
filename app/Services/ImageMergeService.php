@@ -19,11 +19,11 @@ class ImageMergeService
     {
         if (sizeof($this->attachments) == 0) {
             // NOOP, pass base image through unmolested
-            return $this->baseImage->getImageData();
+            return $this->resolveImageData($this->baseImage->getImageData());
         }
 
         $image = new Imagick();
-        $image->readImageBlob($this->baseImage->getImageData());
+        $image->readImageBlob($this->resolveImageData($this->baseImage->getImageData()));
         foreach ($this->attachments as $attachment) {
             $image = $this->addAttachment($image, $attachment);
         }
@@ -36,7 +36,7 @@ class ImageMergeService
     public function addAttachment(Imagick $image, $attachment)
     {
         $addition_img = new Imagick();
-        $addition_img->readImageBlob($attachment->getImageData());
+        $addition_img->readImageBlob($this->resolveImageData($attachment->getImageData()));
 
         $image->compositeImage($addition_img, Imagick::COMPOSITE_DEFAULT, $attachment->getXPos(), $attachment->getYPos());
         return $image;
@@ -54,5 +54,14 @@ class ImageMergeService
 
         return $attachments;
     } // end sortAttachments
+
+    protected function resolveImageData($data)
+    {
+        if (is_resource($data) == true) {
+            return stream_get_contents($data);
+        }
+
+        return $data;
+    } // end resolveImageData
 
 } // end ImageMergeService
