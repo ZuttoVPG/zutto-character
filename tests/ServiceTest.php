@@ -1,5 +1,6 @@
 <?php
 
+use Imagick;
 use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 
