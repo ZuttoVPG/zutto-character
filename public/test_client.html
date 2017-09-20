@@ -207,6 +207,7 @@
         trait_index = $('#attachments div.attachment-wrapper').length;
         $('#attachments').append(makeAttachmentInput(trait_index));
         $('#attachments a.remove').click(removeOnClick);
+        $('#attachments select.trait-selector').change(traitSelectorOnChange);
         $('#request-form').change();
       });
 
