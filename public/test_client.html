@@ -25,6 +25,10 @@
     code.sidescroll {
       overflow-y: scroll;
     }
+
+    #request-form {
+      height: 100%;
+    }
     </style>
   </head>
   <body>
@@ -50,43 +54,10 @@
 
             <div class='form-group' id='attachments'>
               <label>Attachments</label>
-
-            <!--
-              <div class='form-group'>
-                <label for='attachment[][url]'>Trait</label>
-                <select class='form-control' name='attachment[][url]'>
-                  <option value=''></option> 
-                  <option value='/testImg/sad_beanie.png'>Beanie</option> 
-                  <option value='/testImg/fangs.png'>Fangs</option> 
-                  <option value='/testImg/smile.png'>Smiley</option> 
-                </select>
-
-                <br>
-
-                <div class='form-inline'>
-                  <div class='input-group'>
-                    <div class='input-group-addon'>X</div>
-                    <input type='text' size='1' name='attachment[][x]' class='form-control'>
-                  </div>
-                  &nbsp;
-                  <div class='input-group'>
-                    <div class='input-group-addon'>Y</div>
-                    <input type='text' size='1' name='attachment[][y]' class='form-control'>
-                  </div>
-                  &nbsp;
-                  <div class='input-group'>
-                    <div class='input-group-addon'>Z</div>
-                    <input type='text' size='1' name='attachment[][z]' class='form-control'>
-                  </div>
-                </div>
-              </div>
-            -->
-
+              <!-- jQuery will put things here -->
             </div>
-
-            
+          
             <button type='button' id='addTrait' class='btn btn-primary'>Add Trait</button>
-            <button type="submit" class="btn btn-primary">Submit Request</button>
           </form>
         </div>
 
@@ -119,35 +90,73 @@
 
     <script>
     $(document).ready(function() {
+      var removeOnClick = function(e) {
+        e.preventDefault();
+        $(e.target).closest('.attachment-wrapper').remove();
+        $('#request-form').change();
+      };
+
+      var traitSelectorOnChange = function(e) {
+        select = $(e.target);
+        custom = $('input.trait-custom', select.closest('.attachment-wrapper'));
+
+        if (select.val() == 'blob') {
+          custom.attr('placeholder', 'Base64 Encoded Blob...');
+          custom.prop('readonly', false);
+        } else if (select.val() == 'url') {
+          custom.attr('placeholder', 'URL...');
+          custom.prop('readonly', false);
+        } else {
+          custom.val(''); 
+          custom.attr('placeholder', 'Custom...'); 
+          custom.prop('readonly', true);
+        }
+      };
+
       var makeAttachmentInput = function(index) {
         baseUrl = window.location.origin; 
 
         return `
           <div class='form-group attachment-wrapper'>
-            <label for='attachment[${index}][url]'>Trait</label>
-            <select class='form-control' name='attachment[${index}][url]'>
-              <option value=''></option> 
-              <option value='${baseUrl}/testImg/sad_beanie.png'>Beanie</option> 
-              <option value='${baseUrl}/testImg/fangs.png'>Fangs</option> 
-              <option value='${baseUrl}/testImg/smile.png'>Smiley</option> 
-            </select>
+            <div class='row'>
+              <div class='col-6'>
+                <label for='attachment[${index}][url]'>Trait</label> (<a href='#' class='remove'>remove</a>)</label>
+              </div>
+            </div>
 
-            <br>
+            <div class='row'>
+              <div class='col-6'>
+                <select class='form-control trait-selector' name='attachment[${index}][url]'>
+                  <option value=''></option> 
+                  <optgroup label="Preset">
+                    <option value='${baseUrl}/testImg/sad_beanie.png'>Beanie</option> 
+                    <option value='${baseUrl}/testImg/fangs.png'>Fangs</option> 
+                    <option value='${baseUrl}/testImg/smile.png'>Smiley</option> 
+                  </optgroup>
+                  <optgroup label="Custom">
+                    <option value='blob'>Base64 Encoded Blob</option>
+                    <option value='url'>Image URL</option>
+                  </optgroup>
+                </select>
+              </div>
 
-            <div class='form-inline'>
-              <div class='input-group'>
+              <div class='form-group col-6'>
+                <input type='input' class='form-control trait-custom' name='attachment[$index}][url]' placeholder='Custom...' readonly>
+              </div>
+            </div>
+
+            <div class='row form-inline'>
+              <div class='input-group col-3'>
                 <div class='input-group-addon'>X</div>
-                <input type='text' size='1' name='attachment[${index}][x]' class='form-control'>
+                <input type='text' size='1' name='attachment[${index}][x]' class='form-control coord'>
               </div>
-              &nbsp;
-              <div class='input-group'>
+              <div class='input-group col-3'>
                 <div class='input-group-addon'>Y</div>
-                <input type='text' size='1' name='attachment[${index}][y]' class='form-control'>
+                <input type='text' size='1' name='attachment[${index}][y]' class='form-control coord'>
               </div>
-              &nbsp;
-              <div class='input-group'>
+              <div class='input-group col-3'>
                 <div class='input-group-addon'>Z</div>
-                <input type='text' size='1' name='attachment[${index}][z]' class='form-control'>
+                <input type='text' size='1' name='attachment[${index}][z]' class='form-control coord'>
               </div>
             </div>
           </div>
@@ -169,12 +178,20 @@
         };
 
         $('div.attachment-wrapper').each(function(i, e) { 
+          type = 'url';
           image = $('select', e).val();
-          coords = $('input', e).map(function(i, input) { return input.value; });
+          if (image == 'url') {
+            image = $('input.trait-custom').val();
+          } else if (image == 'blob') {
+            type = 'blob';
+            image = $('input.trait-custom').val();
+          }
+
+          coords = $('input.coord', e).map(function(i, input) { return input.value; });
   
           request.attachments.push({
             image: {
-              type: 'url', 
+              type: type, 
               image: image,
             },
             x: coords[0], 
@@ -189,21 +206,18 @@
       $('#addTrait').click(function() {
         trait_index = $('#attachments div.attachment-wrapper').length;
         $('#attachments').append(makeAttachmentInput(trait_index));
+        $('#attachments a.remove').click(removeOnClick);
+        $('#request-form').change();
+      });
+
+      $('#request-form').submit(function(event) {
+        event.preventDefault();
       });
 
       $('#request-form').change(function() {
         request = buildRequest(); 
         $('#requestPreview').text(JSON.stringify(request, null, 2));
 
-        return true;
-      });
-
-      $('#request-form').submit(function(event) {
-        event.preventDefault();
-        request = buildRequest();
-
-        $('#requestPreview').text(JSON.stringify(request, null, 2));
-        
         $.post({
           url: '/character', 
           data: JSON.stringify(request), 
@@ -229,6 +243,9 @@
       });
   
       $('#attachments').append(makeAttachmentInput(0));
+      $('#attachments a.remove').click(removeOnClick);
+      $('#attachments select.trait-selector').change(traitSelectorOnChange);
+
       $('#baseImage option').each(function(i, option) {
         option.value = window.location.origin + option.value;
       });
