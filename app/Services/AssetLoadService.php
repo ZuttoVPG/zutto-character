@@ -90,6 +90,14 @@ class AssetLoadService
         $results = Promise\settle($promises)->wait();
 
         foreach ($results as $url => $response) {
+            // Some errors (ex: dns fails) cause it to never get a Response.
+            if (array_key_exists('value', $response) == false) {
+                foreach ($this->deduplicatedUrls[$url] as $index) {
+                    $this->failedAssets[$index] = $response['reason']->getMessage();
+                }
+                continue;
+            }
+
             $response = $response['value'];
 
             foreach ($this->deduplicatedUrls[$url] as $index) {
