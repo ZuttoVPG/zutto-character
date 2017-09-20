@@ -181,10 +181,10 @@
           type = 'url';
           image = $('select', e).val();
           if (image == 'url') {
-            image = $('input.trait-custom').val();
+            image = $('input.trait-custom', e).val();
           } else if (image == 'blob') {
             type = 'blob';
-            image = $('input.trait-custom').val();
+            image = $('input.trait-custom', e).val();
           }
 
           coords = $('input.coord', e).map(function(i, input) { return input.value; });
