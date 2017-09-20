@@ -1,7 +1,7 @@
 {
-    "name": "laravel/lumen",
-    "description": "The Laravel Lumen Framework.",
-    "keywords": ["framework", "laravel", "lumen"],
+    "name": "ZuttoVPG/zutto-character",
+    "description": "ZuttoVPG Character API",
+    "keywords": ["virtual pets", "image compositing"],
     "license": "MIT",
     "type": "project",
     "require": {
